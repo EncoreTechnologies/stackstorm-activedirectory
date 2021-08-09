@@ -286,8 +286,8 @@ class BaseAction(Action):
 
         # run powershell command
         ps_result = self.connection.run_ps(powershell)
-        result = {'stdout': ps_result.std_out,
-                  'stderr': ps_result.std_err,
+        result = {'stdout': ps_result.std_out.encode('UTF-8'),
+                  'stderr': ps_result.std_err.encode('UTF-8'),
                   'exit_status': ps_result.status_code,
                   'stdout_dict': self.parse_output(ps_result.std_out, **kwargs),
                   'stderr_dict': self.parse_output(ps_result.std_err, **kwargs)}
