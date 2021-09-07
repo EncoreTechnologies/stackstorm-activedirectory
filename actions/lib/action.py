@@ -236,7 +236,7 @@ class BaseAction(Action):
                                   "'output' option is missing in config!")
 
         if output == 'json':
-            parsed_output = json.loads(output_str)
+            parsed_output = json.loads(output_str.decode('UTF-8'))
         elif output == 'raw':
             parsed_output = {}
         else:
@@ -286,8 +286,8 @@ class BaseAction(Action):
 
         # run powershell command
         ps_result = self.connection.run_ps(powershell)
-        result = {'stdout': ps_result.std_out.encode('UTF-8'),
-                  'stderr': ps_result.std_err.encode('UTF-8'),
+        result = {'stdout': ps_result.std_out.decode('UTF-8'),
+                  'stderr': ps_result.std_err.decode('UTF-8'),
                   'exit_status': ps_result.status_code,
                   'stdout_dict': self.parse_output(ps_result.std_out, **kwargs),
                   'stderr_dict': self.parse_output(ps_result.std_err, **kwargs)}
