@@ -1,5 +1,25 @@
 # Change Log
 
+## v1.0.0
+
+- Drop Python 2.7 support
+
+## v0.1.4
+
+- Spelling updates in the README.md.
+- Removed the incubator installation instructions.
+
+## v0.1.3
+
+- Added automatic change to `http` when using port `5985`.
+
+  Contributed by Nick Maludy (Encore Technologies)
+  
+- Added catching of JSON parsing errors, so a failure to parse data from JSON
+  does not fail the action.
+  
+  Contributed by Nick Maludy (Encore Technologies)
+
 ## v0.1.2
 
 - Fixed `$ProgressPreference=false` by setting it to `$ProgressPreference = 'SilentlyContinue'`
