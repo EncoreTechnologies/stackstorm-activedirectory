@@ -43,6 +43,12 @@ class BaseAction(Action):
         else:
             return None
 
+    def to_unicode(self, s):
+        if type(s) is bytes:
+            return s.decode('UTF-8')
+        else:
+            return s
+
     def create_creds_spec(self, **kwargs):
         """Creates two credentials specification from all of the values in
         kwargs, one spec for 'connection', the other for 'cmdlet'.
@@ -238,7 +244,7 @@ class BaseAction(Action):
 
         if output == 'json':
             try:
-                parsed_output = json.loads(output_str.decode('UTF-8'))
+                parsed_output = json.loads(self.to_unicode(output_str))
             except ValueError:
                 tb = traceback.format_exc()
                 parsed_output = {'parse_error': tb}
@@ -291,8 +297,8 @@ class BaseAction(Action):
 
         # run powershell command
         ps_result = self.connection.run_ps(powershell)
-        result = {'stdout': ps_result.std_out.decode('UTF-8'),
-                  'stderr': ps_result.std_err.decode('UTF-8'),
+        result = {'stdout': self.to_unicode(ps_result.std_out),
+                  'stderr': self.to_unicode(ps_result.std_err),
                   'exit_status': ps_result.status_code,
                   'stdout_dict': self.parse_output(ps_result.std_out, **kwargs),
                   'stderr_dict': self.parse_output(ps_result.std_err, **kwargs)}

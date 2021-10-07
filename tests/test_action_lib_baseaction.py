@@ -288,6 +288,33 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
         self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
 
     @patch('lib.winrm_connection.WinRmConnection')
+    def test_run_ad_cmdlet_string(self, connection):
+        connection.run_ps.return_value.std_out = "cmdlet standard ouput"
+        expected_stdout = "cmdlet standard ouput"
+        connection.run_ps.return_value.std_err = "cmdlet standard error"
+        expected_stderr = "cmdlet standard error"
+        connection.run_ps.return_value.status_code = 0
+
+        action = self.get_action_instance(self.config_good)
+        action.connection = connection
+
+        cmdlet = 'Test-Cmdlet'
+        cmdlet_args = ''
+        powershell = ("$ProgressPreference = 'SilentlyContinue';\n"
+                      "{0} {1}").format(cmdlet, cmdlet_args)
+        result = action.run_ad_cmdlet(cmdlet,
+                                      credential_name='base',
+                                      hostname='abc',
+                                      output='raw')
+
+        connection.run_ps.assert_called_with(powershell)
+
+        self.assertEqual(result[0], True)
+        self.assertEqual(result[1]['stdout'], expected_stdout)
+        self.assertEqual(result[1]['stderr'], expected_stderr)
+        self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
+
+    @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet_fail(self, connection):
         connection.run_ps.return_value.std_out = b"cmdlet standard ouput"
         expected_stdout = "cmdlet standard ouput"
