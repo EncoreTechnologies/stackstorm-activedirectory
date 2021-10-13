@@ -147,6 +147,23 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
                                         cmdlet_password=expected['cmdlet']['password'])
         self.assertEqual(resolved, expected)
 
+    def test_to_unicode_string(self):
+        config = self.config_good
+        action = self.get_action_instance(config)
+        test_string = "test_string"
+
+        result = action.to_unicode(test_string)
+        self.assertEqual(test_string, result)
+
+    def test_to_unicode_bytes(self):
+        config = self.config_good
+        action = self.get_action_instance(config)
+        test_bytes = b"test_bytes"
+        expected = "test_bytes"
+
+        result = action.to_unicode(test_bytes)
+        self.assertEqual(expected, result)
+
     def test_resolve_transport_cmdline(self):
         action = self.get_action_instance(self.config_blank)
         expected = {'transport': 'abc', 'port': 123}
