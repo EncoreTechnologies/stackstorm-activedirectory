@@ -147,6 +147,23 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
                                         cmdlet_password=expected['cmdlet']['password'])
         self.assertEqual(resolved, expected)
 
+    def test_to_unicode_string(self):
+        config = self.config_good
+        action = self.get_action_instance(config)
+        test_string = "test_string"
+
+        result = action.to_unicode(test_string)
+        self.assertEqual(test_string, result)
+
+    def test_to_unicode_bytes(self):
+        config = self.config_good
+        action = self.get_action_instance(config)
+        test_bytes = b"test_bytes"
+        expected = "test_bytes"
+
+        result = action.to_unicode(test_bytes)
+        self.assertEqual(expected, result)
+
     def test_resolve_transport_cmdline(self):
         action = self.get_action_instance(self.config_blank)
         expected = {'transport': 'abc', 'port': 123}
@@ -262,8 +279,10 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
 
     @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet(self, connection):
-        connection.run_ps.return_value.std_out = "cmdlet standard ouput"
-        connection.run_ps.return_value.std_err = "cmdlet standard error"
+        connection.run_ps.return_value.std_out = b"cmdlet standard ouput"
+        expected_stdout = "cmdlet standard ouput"
+        connection.run_ps.return_value.std_err = b"cmdlet standard error"
+        expected_stderr = "cmdlet standard error"
         connection.run_ps.return_value.status_code = 0
 
         action = self.get_action_instance(self.config_good)
@@ -281,14 +300,43 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
         connection.run_ps.assert_called_with(powershell)
 
         self.assertEqual(result[0], True)
-        self.assertEqual(result[1]['stdout'], connection.run_ps.return_value.std_out)
-        self.assertEqual(result[1]['stderr'], connection.run_ps.return_value.std_err)
+        self.assertEqual(result[1]['stdout'], expected_stdout)
+        self.assertEqual(result[1]['stderr'], expected_stderr)
+        self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
+
+    @patch('lib.winrm_connection.WinRmConnection')
+    def test_run_ad_cmdlet_string(self, connection):
+        connection.run_ps.return_value.std_out = "cmdlet standard ouput"
+        expected_stdout = "cmdlet standard ouput"
+        connection.run_ps.return_value.std_err = "cmdlet standard error"
+        expected_stderr = "cmdlet standard error"
+        connection.run_ps.return_value.status_code = 0
+
+        action = self.get_action_instance(self.config_good)
+        action.connection = connection
+
+        cmdlet = 'Test-Cmdlet'
+        cmdlet_args = ''
+        powershell = ("$ProgressPreference = 'SilentlyContinue';\n"
+                      "{0} {1}").format(cmdlet, cmdlet_args)
+        result = action.run_ad_cmdlet(cmdlet,
+                                      credential_name='base',
+                                      hostname='abc',
+                                      output='raw')
+
+        connection.run_ps.assert_called_with(powershell)
+
+        self.assertEqual(result[0], True)
+        self.assertEqual(result[1]['stdout'], expected_stdout)
+        self.assertEqual(result[1]['stderr'], expected_stderr)
         self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
 
     @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet_fail(self, connection):
-        connection.run_ps.return_value.std_out = "cmdlet standard ouput"
-        connection.run_ps.return_value.std_err = "cmdlet standard error"
+        connection.run_ps.return_value.std_out = b"cmdlet standard ouput"
+        expected_stdout = "cmdlet standard ouput"
+        connection.run_ps.return_value.std_err = b"cmdlet standard error"
+        expected_stderr = "cmdlet standard error"
         connection.run_ps.return_value.status_code = 1
 
         action = self.get_action_instance(self.config_good)
@@ -306,14 +354,16 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
         connection.run_ps.assert_called_with(powershell)
 
         self.assertEqual(result[0], False)
-        self.assertEqual(result[1]['stdout'], connection.run_ps.return_value.std_out)
-        self.assertEqual(result[1]['stderr'], connection.run_ps.return_value.std_err)
+        self.assertEqual(result[1]['stdout'], expected_stdout)
+        self.assertEqual(result[1]['stderr'], expected_stderr)
         self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
 
     @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet_cmdlet_credentials(self, connection):
-        connection.run_ps.return_value.std_out = "cmdlet standard ouput"
-        connection.run_ps.return_value.std_err = "cmdlet standard error"
+        connection.run_ps.return_value.std_out = b"cmdlet standard ouput"
+        expected_stdout = "cmdlet standard ouput"
+        connection.run_ps.return_value.std_err = b"cmdlet standard error"
+        expected_stderr = "cmdlet standard error"
         connection.run_ps.return_value.status_code = 0
 
         action = self.get_action_instance(self.config_good)
@@ -338,14 +388,16 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
         connection.run_ps.assert_called_with(powershell)
 
         self.assertEqual(result[0], True)
-        self.assertEqual(result[1]['stdout'], connection.run_ps.return_value.std_out)
-        self.assertEqual(result[1]['stderr'], connection.run_ps.return_value.std_err)
+        self.assertEqual(result[1]['stdout'], expected_stdout)
+        self.assertEqual(result[1]['stderr'], expected_stderr)
         self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
 
     @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet_json(self, connection):
-        connection.run_ps.return_value.std_out = "{\"cmdlet\": \"standard ouput\"}"
-        connection.run_ps.return_value.std_err = "{\"cmdlet\": \"standard error\"}"
+        connection.run_ps.return_value.std_out = b"{\"cmdlet\": \"standard ouput\"}"
+        expected_stdout = "{\"cmdlet\": \"standard ouput\"}"
+        connection.run_ps.return_value.std_err = b"{\"cmdlet\": \"standard error\"}"
+        expected_stderr = "{\"cmdlet\": \"standard error\"}"
         connection.run_ps.return_value.status_code = 0
 
         action = self.get_action_instance(self.config_good)
@@ -364,8 +416,8 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
         connection.run_ps.assert_called_with(powershell)
 
         self.assertEqual(result[0], True)
-        self.assertEqual(result[1]['stdout'], connection.run_ps.return_value.std_out)
-        self.assertEqual(result[1]['stderr'], connection.run_ps.return_value.std_err)
+        self.assertEqual(result[1]['stdout'], expected_stdout)
+        self.assertEqual(result[1]['stderr'], expected_stderr)
         self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
         self.assertEqual(result[1]['stdout_dict'],
                          json.loads(connection.run_ps.return_value.std_out))
@@ -375,8 +427,8 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
     @patch('lib.action.traceback')
     @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet_json_stdout_parse_fail(self, connection, mock_traceback):
-        connection.run_ps.return_value.std_out = "some non-json string"
-        connection.run_ps.return_value.std_err = '{"key": "value"}'
+        connection.run_ps.return_value.std_out = b"some non-json string"
+        connection.run_ps.return_value.std_err = b'{"key": "value"}'
         connection.run_ps.return_value.status_code = 0
 
         mock_traceback.format_exc.return_value = "fake exception traceback"
@@ -407,7 +459,7 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
     @patch('lib.action.traceback')
     @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet_json_stderr_parse_fail(self, connection, mock_traceback):
-        connection.run_ps.return_value.std_out = '{"key": "value"}'
+        connection.run_ps.return_value.std_out = b'{"key": "value"}'
         err = ('#< CLIXML\n'
                '<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/po'
                'wershell/2004/04"><Obj S="progress" RefId="0"><TN RefId="0"><T'
@@ -416,7 +468,7 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
                'paring modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI>'
                '<PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Ob'
                'j></Objs>')
-        connection.run_ps.return_value.std_err = err
+        connection.run_ps.return_value.std_err = err.encode()
         connection.run_ps.return_value.status_code = 0
 
         mock_traceback.format_exc.return_value = "fake exception traceback"
@@ -446,8 +498,10 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
 
     @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet_json_parse_empty(self, connection):
-        connection.run_ps.return_value.std_out = ""
-        connection.run_ps.return_value.std_err = ""
+        connection.run_ps.return_value.std_out = b""
+        expected_stdout = ""
+        connection.run_ps.return_value.std_err = b""
+        expected_stderr = ""
         connection.run_ps.return_value.status_code = 0
 
         action = self.get_action_instance(self.config_good)
@@ -466,16 +520,18 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
         connection.run_ps.assert_called_with(powershell)
 
         self.assertEqual(result[0], True)
-        self.assertEqual(result[1]['stdout'], connection.run_ps.return_value.std_out)
-        self.assertEqual(result[1]['stderr'], connection.run_ps.return_value.std_err)
+        self.assertEqual(result[1]['stdout'], expected_stdout)
+        self.assertEqual(result[1]['stderr'], expected_stderr)
         self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
         self.assertEqual(result[1]['stdout_dict'], {})
         self.assertEqual(result[1]['stderr_dict'], {})
 
     @patch('lib.winrm_connection.WinRmConnection')
     def test_run_ad_cmdlet_cmdlet_credentials_json(self, connection):
-        connection.run_ps.return_value.std_out = "{\"cmdlet\": \"standard ouput\"}"
-        connection.run_ps.return_value.std_err = "{\"cmdlet\": \"standard error\"}"
+        connection.run_ps.return_value.std_out = b"{\"cmdlet\": \"standard ouput\"}"
+        expected_stdout = "{\"cmdlet\": \"standard ouput\"}"
+        connection.run_ps.return_value.std_err = b"{\"cmdlet\": \"standard error\"}"
+        expected_stderr = "{\"cmdlet\": \"standard error\"}"
         connection.run_ps.return_value.status_code = 0
 
         action = self.get_action_instance(self.config_good)
@@ -501,8 +557,8 @@ class TestActionLibBaseAction(ActiveDirectoryBaseActionTestCase):
         connection.run_ps.assert_called_with(powershell)
 
         self.assertEqual(result[0], True)
-        self.assertEqual(result[1]['stdout'], connection.run_ps.return_value.std_out)
-        self.assertEqual(result[1]['stderr'], connection.run_ps.return_value.std_err)
+        self.assertEqual(result[1]['stdout'], expected_stdout)
+        self.assertEqual(result[1]['stderr'], expected_stderr)
         self.assertEqual(result[1]['exit_status'], connection.run_ps.return_value.status_code)
         self.assertEqual(result[1]['stdout_dict'],
                          json.loads(connection.run_ps.return_value.std_out))

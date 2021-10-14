@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.1
+
+- Added support for conversion of byte literals to strings
+
 ## v1.0.0
 
 - Drop Python 2.7 support
