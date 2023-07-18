@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Description:
 #  This script generates all of our actions for AD cmdlets from etc/cmdlets.txt
