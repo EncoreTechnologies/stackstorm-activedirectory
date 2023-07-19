@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.2
+
+- Dropped support for python2 in cmdlets_generate script
+
 ## v1.0.1
 
 - Added support for conversion of byte literals to strings
