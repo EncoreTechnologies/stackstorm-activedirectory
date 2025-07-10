@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.3
+
+- Use single quotes around passwords because dollar signs were not getting escaped
+
 ## v1.0.2
 
 - Dropped support for python2 in cmdlets_generate script
