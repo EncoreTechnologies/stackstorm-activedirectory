@@ -279,7 +279,7 @@ class BaseAction(Action):
         output_ps = self.resolve_output_ps(**kwargs)
 
         if 'username' in creds['cmdlet'] and 'password' in creds['cmdlet']:
-            powershell += ("$securepass = ConvertTo-SecureString \"{3}\" -AsPlainText -Force;\n"
+            powershell += ("$securepass = ConvertTo-SecureString '{3}' -AsPlainText -Force;\n"
                           "$admincreds = New-Object System.Management.Automation.PSCredential(\"{2}\", $securepass);\n"  # noqa
                           "{0} -Credential $admincreds {1}"
                           "").format(cmdlet,
